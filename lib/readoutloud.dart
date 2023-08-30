@@ -27,9 +27,9 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
   late FlutterTts flutterTts;
   String textToRead =
       "Hello, welcome to the Flutter text-to-speech example. You can adjust the playback speed using the buttons below.";
-  double playbackSpeed = 1.0;
+  double playbackSpeed = 0.5;
   bool isPlaying = false;
-  final  List<double> speeds = [1, 0.25, 0.5, 0.75, 1.25, 1.5, 1.75, 2];
+  final List<double> speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
   @override
   void initState() {
@@ -121,39 +121,31 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
       builder: (context) {
         return AlertDialog(
           title: Text("Select Playback Speed"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              DropdownButton<double>(
-                value: playbackSpeed,
-                onChanged: (newValue) {
-                  setState(() {
-                    playbackSpeed = newValue!;
-                    _adjustSpeed(playbackSpeed);
-                  });
-                },
-                items: speeds.map((double value) {
-                  return DropdownMenuItem<double>(
-                    value: value,
-                    child: Text(value.toString()),
-                  );
-                }).toList(),
-              ),
-              SizedBox(height: 20),
-              Text('Selected Item: $playbackSpeed'),
-            ],
+          content: Container(
+            width: double.maxFinite,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                SizedBox(
+                  height: 200,
+                  child: ListView.builder(
+                    itemCount: speeds.length,
+                    itemBuilder: (context, index) {
+                      final speed = speeds[index];
+                      return ListTile(
+                        title: Text(speed.toString()),
+                        onTap: () {
+                          _adjustSpeed(speed/2.0);
+                          Navigator.pop(context);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         );
-
-                // ListTile(
-                //   title: Text(speeds),
-                //   onTap: () {
-                //     playbackSpeed = speed;
-                //     _adjustSpeed(playbackSpeed);
-                //     Navigator.pop(context);
-                //   },
-                // ),
-
       },
     );
   }
