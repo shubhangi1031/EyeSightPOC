@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
 void main() {
-  runApp(TextToSpeechApp());
+  runApp(const TextToSpeechApp());
 }
 
 class TextToSpeechApp extends StatelessWidget {
+  const TextToSpeechApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -13,12 +15,14 @@ class TextToSpeechApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: TextToSpeechScreen(),
+      home: const TextToSpeechScreen(),
     );
   }
 }
 
 class TextToSpeechScreen extends StatefulWidget {
+  const TextToSpeechScreen({super.key});
+
   @override
   _TextToSpeechScreenState createState() => _TextToSpeechScreenState();
 }
@@ -30,6 +34,7 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
   double playbackSpeed = 0.5;
   bool isPlaying = false;
   final List<double> speeds = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+  int tappedWordIndex = 0;
 
   @override
   void initState() {
@@ -44,11 +49,13 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
     await flutterTts.setSpeechRate(playbackSpeed);
   }
 
-  Future<void> _togglePlayPause() async {
+  Future<void> _togglePlayPause(int startWordIndex) async {
     if (isPlaying) {
       await flutterTts.stop();
     } else {
-      await flutterTts.speak(textToRead);
+      final words = textToRead.split(' ');
+      final substring = words.sublist(startWordIndex).join(' ');
+      await flutterTts.speak(substring);
     }
     setState(() {
       isPlaying = !isPlaying;
@@ -72,13 +79,13 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Text-to-Speech Example"),
+        title: const Text("Text-to-Speech Example"),
       ),
       body: Center(
         child: Card(
-          margin: EdgeInsets.all(16),
+          margin: const EdgeInsets.all(16),
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -87,25 +94,40 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
                   children: [
                     IconButton(
                       onPressed: _showPlaybackSpeedOptions,
-                      icon: Icon(Icons.speed),
+                      icon: const Icon(Icons.speed),
                     ),
                     IconButton(
-                      onPressed: _togglePlayPause,
+                      onPressed: () {
+                        // Start reading from the tapped word
+                        _togglePlayPause(tappedWordIndex);
+                      },
                       icon: Icon(
                         isPlaying ? Icons.pause : Icons.play_arrow,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
-                Text(
+                const SizedBox(height: 20),
+                const Text(
                   "Text to Read:",
                   style: TextStyle(fontSize: 18),
                 ),
-                SizedBox(height: 10),
-                Text(
-                  textToRead,
-                  style: TextStyle(fontSize: 16),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  // Wrap the text with GestureDetector
+                  onTapDown: (details) {
+                    // Calculate the tapped word index
+                    final tapPosition = (details.localPosition.dx / context.size!.width * textToRead.split(' ').length).toInt();
+                    setState(() {
+                      tappedWordIndex = tapPosition;
+                    });
+                    // Start reading from the tapped word
+                    _togglePlayPause(tappedWordIndex);
+                  },
+                  child: Text(
+                    textToRead,
+                    style: const TextStyle(fontSize: 16),
+                  ),
                 ),
               ],
             ),
@@ -120,8 +142,8 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Select Playback Speed"),
-          content: Container(
+          title: const Text("Select Playback Speed"),
+          content: SizedBox(
             width: double.maxFinite,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -135,7 +157,7 @@ class _TextToSpeechScreenState extends State<TextToSpeechScreen> {
                       return ListTile(
                         title: Text(speed.toString()),
                         onTap: () {
-                          _adjustSpeed(speed/2.0);
+                          _adjustSpeed(speed / 2.0);
                           Navigator.pop(context);
                         },
                       );
